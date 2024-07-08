@@ -63,6 +63,20 @@ def check_game_over(bricks, ball):
         return True, "Game Over!"
     return False, ""
 
+def init_bricks(width):
+    bricks = []
+    brick_rows = 1
+    brick_cols = 10
+    brick_width = width // brick_cols
+    brick_height = 30
+
+    for row in range(brick_rows):
+        for col in range(brick_cols):
+            brick = Brick(col * brick_width, row * brick_height + 60, brick_width, brick_height)
+            bricks.append(brick)
+
+    return bricks
+
 if __name__ == '__main__':
     pygame.init()
     width, height = 800, 600
@@ -73,16 +87,7 @@ if __name__ == '__main__':
 
     paddle = Paddle(width // 2 - 50, height - 30, 100, 20)
     ball = Ball(width // 2, height // 2, 10)
-    bricks = []
-    brick_rows = 1
-    brick_cols = 10
-    brick_width = width // brick_cols
-    brick_height = 30
-
-    for row in range(brick_rows):
-        for col in range(brick_cols):
-            brick = Brick(col * brick_width, row * brick_height, brick_width, brick_height)
-            bricks.append(brick)
+    bricks = init_bricks(width)
 
     game_over = False
     while True:
@@ -132,11 +137,7 @@ if __name__ == '__main__':
                 # Reset the game
                 paddle = Paddle(width // 2 - 50, height - 30, 100, 20)
                 ball = Ball(width // 2, height // 2, 10)
-                bricks = []
-                for row in range(brick_rows):
-                    for col in range(brick_cols):
-                        brick = Brick(col * brick_width, row * brick_height, brick_width, brick_height)
-                        bricks.append(brick)
+                bricks = init_bricks(width)
                 game_over = False
             elif keys[pygame.K_q]:
                 pygame.quit()
