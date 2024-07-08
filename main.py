@@ -56,6 +56,13 @@ class Brick:
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
 
+def check_game_over(bricks, ball):
+    if not bricks:
+        return True, "You Win!"
+    if ball.rect.top >= height:
+        return True, "Game Over!"
+    return False, ""
+
 if __name__ == '__main__':
     pygame.init()
     width, height = 800, 600
@@ -67,7 +74,7 @@ if __name__ == '__main__':
     paddle = Paddle(width // 2 - 50, height - 30, 100, 20)
     ball = Ball(width // 2, height // 2, 10)
     bricks = []
-    brick_rows = 5
+    brick_rows = 1
     brick_cols = 10
     brick_width = width // brick_cols
     brick_height = 30
@@ -77,30 +84,63 @@ if __name__ == '__main__':
             brick = Brick(col * brick_width, row * brick_height, brick_width, brick_height)
             bricks.append(brick)
 
+    game_over = False
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
                 
+        if not game_over:
+            # Paddle movement
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_LEFT]:
+                paddle.move(-paddle.speed)
+            if keys[pygame.K_RIGHT]:
+                paddle.move(paddle.speed)
+
+            # Ball movement
+            ball.move(bricks)
+
+            # Check if the game is over
+            game_over, msg = check_game_over(bricks, ball)
+
         # Black background color
         window.fill((0, 0, 0))
 
-        # Paddle movement
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            paddle.move(-paddle.speed)
-        if keys[pygame.K_RIGHT]:
-            paddle.move(paddle.speed)
-        paddle.draw(window)
-
-        # Ball movement
-        ball.move(bricks)
+        # Draw everything needed
         ball.draw(window)
-
-        # Brick
         for brick in bricks:
             brick.draw(window)
+        paddle.draw(window)
+
+        # Handle game over
+        if game_over:
+            font = pygame.font.Font(None, 74)
+            text = font.render(msg, True, (255, 255, 255))
+            text_rect = text.get_rect(center=(width / 2, height / 2))
+            window.blit(text, text_rect)
+
+            # Restart or quit
+            small_font = pygame.font.Font(None, 36)
+            restart_text = small_font.render("Press R to Restart or Q to Quit", True, (255, 255, 255))
+            restart_rect = restart_text.get_rect(center=(width / 2, height / 2 + 50))
+            window.blit(restart_text, restart_rect)
+
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_r]:
+                # Reset the game
+                paddle = Paddle(width // 2 - 50, height - 30, 100, 20)
+                ball = Ball(width // 2, height // 2, 10)
+                bricks = []
+                for row in range(brick_rows):
+                    for col in range(brick_cols):
+                        brick = Brick(col * brick_width, row * brick_height, brick_width, brick_height)
+                        bricks.append(brick)
+                game_over = False
+            elif keys[pygame.K_q]:
+                pygame.quit()
+                sys.exit()
 
         # Update display
         pygame.display.flip()
