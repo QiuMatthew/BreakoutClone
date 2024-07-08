@@ -1,10 +1,19 @@
 import pygame
 import sys
 
+# Constants
+WIDTH, HEIGHT = 800, 600
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+BRICK_ROWS = 1
+BRICK_COLS = 10
+BRICK_HEIGHT = 30
+FPS = 60
+
 class Paddle:
-    def __init__(self, x, y, width, height) -> None:
+    def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
-        self.color = (255, 255, 255)
+        self.color = WHITE
         self.speed = 10
 
     def draw(self, screen):
@@ -12,27 +21,27 @@ class Paddle:
 
     def move(self, dx):
         self.rect.x += dx
-        if self.rect.x < 0:
-            self.rect.x = 0
-        if self.rect.x > width:
-            self.rect.x = width
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
 
 class Ball:
-    def __init__(self, x, y, radius) -> None:
+    def __init__(self, x, y, radius):
         self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
-        self.color = (255, 255, 255)
+        self.color = WHITE
         self.speed_x = 5
         self.speed_y = -5
-    
+
     def draw(self, screen):
         pygame.draw.ellipse(screen, self.color, self.rect)
 
-    def move(self, bricks):
+    def move(self, paddle, bricks):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
         
-        # Bounce off the wall
-        if self.rect.left <= 0 or self.rect.right >= width:
+        # Bounce off the walls
+        if self.rect.left <= 0 or self.rect.right >= WIDTH:
             self.speed_x = -self.speed_x
         if self.rect.top <= 0:
             self.speed_y = -self.speed_y
@@ -49,47 +58,46 @@ class Ball:
                 break
 
 class Brick:
-    def __init__(self, x, y, width, height) -> None:
+    def __init__(self, x, y, width, height):
         self.rect = pygame.Rect(x, y, width, height)
-        self.color = (255, 255, 255)
+        self.color = WHITE
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
 
 def check_game_over(bricks, ball):
+    """Check if the game is over."""
     if not bricks:
         return True, "You Win!"
-    if ball.rect.top >= height:
+    if ball.rect.top >= HEIGHT:
         return True, "Game Over!"
     return False, ""
 
 def init_bricks(width):
+    """Initialize the bricks."""
     bricks = []
-    brick_rows = 1
-    brick_cols = 10
-    brick_width = width // brick_cols
-    brick_height = 30
+    brick_width = width // BRICK_COLS
 
-    for row in range(brick_rows):
-        for col in range(brick_cols):
-            brick = Brick(col * brick_width, row * brick_height + 60, brick_width, brick_height)
+    for row in range(BRICK_ROWS):
+        for col in range(BRICK_COLS):
+            brick = Brick(col * brick_width, row * BRICK_HEIGHT + 60, brick_width, BRICK_HEIGHT)
             bricks.append(brick)
 
     return bricks
 
-if __name__ == '__main__':
+def main():
     pygame.init()
-    width, height = 800, 600
-    window = pygame.display.set_mode((width, height))
-    pygame.display.set_caption("Q's Breakout Clone")
+    window = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Breakout Clone")
 
     clock = pygame.time.Clock()
 
-    paddle = Paddle(width // 2 - 50, height - 30, 100, 20)
-    ball = Ball(width // 2, height // 2, 10)
-    bricks = init_bricks(width)
+    paddle = Paddle(WIDTH // 2 - 50, HEIGHT - 30, 100, 20)
+    ball = Ball(WIDTH // 2, HEIGHT // 2, 10)
+    bricks = init_bricks(WIDTH)
 
     game_over = False
+
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -105,13 +113,13 @@ if __name__ == '__main__':
                 paddle.move(paddle.speed)
 
             # Ball movement
-            ball.move(bricks)
+            ball.move(paddle, bricks)
 
             # Check if the game is over
             game_over, msg = check_game_over(bricks, ball)
 
         # Black background color
-        window.fill((0, 0, 0))
+        window.fill(BLACK)
 
         # Draw everything needed
         ball.draw(window)
@@ -122,22 +130,22 @@ if __name__ == '__main__':
         # Handle game over
         if game_over:
             font = pygame.font.Font(None, 74)
-            text = font.render(msg, True, (255, 255, 255))
-            text_rect = text.get_rect(center=(width / 2, height / 2))
+            text = font.render(msg, True, WHITE)
+            text_rect = text.get_rect(center=(WIDTH / 2, HEIGHT / 2))
             window.blit(text, text_rect)
 
             # Restart or quit
             small_font = pygame.font.Font(None, 36)
-            restart_text = small_font.render("Press R to Restart or Q to Quit", True, (255, 255, 255))
-            restart_rect = restart_text.get_rect(center=(width / 2, height / 2 + 50))
+            restart_text = small_font.render("Press R to Restart or Q to Quit", True, WHITE)
+            restart_rect = restart_text.get_rect(center=(WIDTH / 2, HEIGHT / 2 + 50))
             window.blit(restart_text, restart_rect)
 
             keys = pygame.key.get_pressed()
             if keys[pygame.K_r]:
                 # Reset the game
-                paddle = Paddle(width // 2 - 50, height - 30, 100, 20)
-                ball = Ball(width // 2, height // 2, 10)
-                bricks = init_bricks(width)
+                paddle = Paddle(WIDTH // 2 - 50, HEIGHT - 30, 100, 20)
+                ball = Ball(WIDTH // 2, HEIGHT // 2, 10)
+                bricks = init_bricks(WIDTH)
                 game_over = False
             elif keys[pygame.K_q]:
                 pygame.quit()
@@ -147,4 +155,8 @@ if __name__ == '__main__':
         pygame.display.flip()
 
         # Cap FPS
-        clock.tick(60)
+        clock.tick(FPS)
+
+if __name__ == '__main__':
+    main()
+
