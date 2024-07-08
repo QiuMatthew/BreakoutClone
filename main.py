@@ -7,7 +7,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 BRICK_ROWS = 1
 BRICK_COLS = 10
-BRICK_HEIGHT = 30
+BRICK_HEIGHT = 20
+X_SPEED_ADJUSTMENT_FACTOR = 4
 FPS = 60
 
 class Paddle:
@@ -30,6 +31,7 @@ class Ball:
     def __init__(self, x, y, radius):
         self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         self.color = WHITE
+        self.speed_x_max = 5    # This won't change
         self.speed_x = 5
         self.speed_y = -5
 
@@ -49,6 +51,9 @@ class Ball:
         # Bounce off the paddle
         if self.rect.colliderect(paddle.rect):
             self.speed_y = -self.speed_y
+            # Calculate the hit position on the paddle
+            hit_pos = (self.rect.centerx - paddle.rect.left) / paddle.rect.width
+            self.speed_x = (hit_pos - 0.5) * X_SPEED_ADJUSTMENT_FACTOR * self.speed_x_max  # Adjust x speed based on hit position
 
         # Bounce off a brick
         for brick in bricks:
@@ -92,7 +97,7 @@ def main():
 
     clock = pygame.time.Clock()
 
-    paddle = Paddle(WIDTH // 2 - 50, HEIGHT - 30, 100, 20)
+    paddle = Paddle(WIDTH // 2 - 100, HEIGHT - 30, 200, 20)
     ball = Ball(WIDTH // 2, HEIGHT // 2, 10)
     bricks = init_bricks(WIDTH)
 
