@@ -27,19 +27,26 @@ class Ball:
     def draw(self, screen):
         pygame.draw.ellipse(screen, self.color, self.rect)
 
-    def move(self):
+    def move(self, bricks):
         self.rect.x += self.speed_x
         self.rect.y += self.speed_y
         
-        # Bounce against wall
+        # Bounce off the wall
         if self.rect.left <= 0 or self.rect.right >= width:
             self.speed_x = -self.speed_x
         if self.rect.top <= 0:
             self.speed_y = -self.speed_y
 
-        # Bounce against paddle
+        # Bounce off the paddle
         if self.rect.colliderect(paddle.rect):
             self.speed_y = -self.speed_y
+
+        # Bounce off a brick
+        for brick in bricks:
+            if self.rect.colliderect(brick.rect):
+                bricks.remove(brick)
+                self.speed_y = -self.speed_y
+                break
 
 class Brick:
     def __init__(self, x, y, width, height) -> None:
@@ -88,7 +95,7 @@ if __name__ == '__main__':
         paddle.draw(window)
 
         # Ball movement
-        ball.move()
+        ball.move(bricks)
         ball.draw(window)
 
         # Brick
