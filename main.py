@@ -1,5 +1,7 @@
 import pygame
 import sys
+from enum import Enum
+import random
 
 # Constants
 WIDTH, HEIGHT = 800, 600
@@ -10,6 +12,10 @@ BRICK_COLS = 10
 BRICK_HEIGHT = 20
 X_SPEED_ADJUSTMENT_FACTOR = 4
 FPS = 60
+
+class Effect(Enum):
+    ENLARGE_PADDLE = 1
+    SHORTEN_PADDLE = 2
 
 class Paddle:
     def __init__(self, x, y, width, height):
@@ -28,10 +34,11 @@ class Paddle:
             self.rect.right = WIDTH
 
 class Ball:
+    _MAX_SPEED_X = 5    # class level constant
+
     def __init__(self, x, y, radius):
         self.rect = pygame.Rect(x - radius, y - radius, radius * 2, radius * 2)
         self.color = WHITE
-        self.speed_x_max = 5    # This won't change
         self.speed_x = 5
         self.speed_y = -5
 
@@ -53,19 +60,29 @@ class Ball:
             self.speed_y = -self.speed_y
             # Calculate the hit position on the paddle
             hit_pos = (self.rect.centerx - paddle.rect.left) / paddle.rect.width
-            self.speed_x = (hit_pos - 0.5) * X_SPEED_ADJUSTMENT_FACTOR * self.speed_x_max  # Adjust x speed based on hit position
+            self.speed_x = (hit_pos - 0.5) * X_SPEED_ADJUSTMENT_FACTOR * Ball._MAX_SPEED_X  # Adjust x speed based on hit position
 
         # Bounce off a brick
         for brick in bricks:
             if self.rect.colliderect(brick.rect):
+                # Apply the power-up effect
+                self.apply_effect(paddle, brick.effect)
+                # Remove the block and change ball speed
                 bricks.remove(brick)
                 self.speed_y = -self.speed_y
                 break
 
+    def apply_effect(self, paddle, effect):
+        if effect == Effect.ENLARGE_PADDLE:
+            paddle.rect.width = min(paddle.rect.width * 2, WIDTH)
+        if effect == Effect.SHORTEN_PADDLE:
+            paddle.rect.width /= 2
+
 class Brick:
-    def __init__(self, x, y, width, height):
+    def __init__(self, x, y, width, height, effect=None):
         self.rect = pygame.Rect(x, y, width, height)
         self.color = WHITE
+        self.effect = effect
 
     def draw(self, screen):
         pygame.draw.rect(screen, self.color, self.rect)
@@ -85,7 +102,7 @@ def init_bricks(width):
 
     for row in range(BRICK_ROWS):
         for col in range(BRICK_COLS):
-            brick = Brick(col * brick_width, row * BRICK_HEIGHT + 60, brick_width, BRICK_HEIGHT)
+            brick = Brick(col * brick_width, row * BRICK_HEIGHT + 60, brick_width, BRICK_HEIGHT, random.choice(list(Effect)))
             bricks.append(brick)
 
     return bricks
