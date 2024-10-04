@@ -116,6 +116,8 @@ def main():
 
     paddle = Paddle(WIDTH // 2 - 100, HEIGHT - 30, 200, 20)
     ball = Ball(WIDTH // 2, HEIGHT // 2, 10)
+    balls = []
+    balls.append(ball)
     bricks = init_bricks(WIDTH)
 
     game_over = False
